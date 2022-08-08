@@ -1,3 +1,50 @@
+---
+// @ts-ignore
+import XElement from 'astro-xelement';
+const { Form } = XElement;
+const { request } = Astro;
+
+let data: Record<string, unknown>;
+
+// Example form action: converts name to uppercase
+const processFormData = (submittedData: Record<string, unknown>) => {
+	return { ...submittedData, name: (submittedData.name as string)?.toUpperCase() };
+}
+
+// This is the bit that handles form POST vs fetch POST
+if (request.method === 'POST') {
+	if (request.headers.get('Content-Type') === 'application/json') {
+		const submittedData = await request.json();
+		data = processFormData(submittedData);
+		return new Response(JSON.stringify(data), { status: 200 });
+	} else if (request.headers.get('Content-Type') === 'application/x-www-form-urlencoded') {
+		const submittedData = Object.fromEntries(await request.formData());
+		data = processFormData(submittedData);
+	}
+}
+
+// this will run on the client when form is submitted
+const handleFormSubmit = async (e: SubmitEvent) => {
+	e.preventDefault();
+	const formData = Object.fromEntries(new FormData(e.currentTarget as HTMLFormElement));
+
+	const returnedResponse = await fetch('/', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(formData)
+	});
+
+	if (returnedResponse.ok) {
+		const processedData = await returnedResponse.json();
+
+		// do something with the data
+		document.querySelector('output > pre').textContent = JSON.stringify(processedData, null, 2);
+	} else {
+		console.error(returnedResponse.statusText);
+	}
+}
+---
+
 <html lang='en'>
 
 <head>
@@ -8,12 +55,45 @@
 
 <body>
 	<h1>Astro</h1>
+
+	<p>This form converts the submitted data to uppercase.</p>
+
+	<Form method='post' @submit={handleFormSubmit}>
+		<input type='text' name='name' />
+		<input type='submit' value='Submit' />
+	</Form>
+
+	<output>
+		<pre>{data && JSON.stringify(data, null, 2)}</pre>
+	</output>
 </body>
 
 <style>
 	html {
 		color-scheme: dark light;
 		font-family: system-ui, sans-serif;
+	}
+
+	body {
+		margin: 0;
+		display: grid;
+		justify-content: center;
+		justify-items: start;
+		gap: 0.5rem;
+	}
+
+	h1 {
+		margin-bottom: 0;
+	}
+
+	p {
+		font-size: 0.8rem;
+		font-style: italic;
+	}
+
+	form {
+		display: flex;
+		gap: 0.5rem;
 	}
 </style>
 
