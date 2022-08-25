@@ -11,10 +11,13 @@ let data: Record<string, unknown>;
 const formId = 'uppercase-form';
 
 // Example form action: converts name to uppercase
-const processFormData = (submittedData: Record<string, unknown>) => {
+const processFormData = async (submittedData: Record<string, unknown>) => {
+	const randomDelay = Math.max(Math.floor(Math.random() * 1500), 500);
+	await new Promise((resolve) => setTimeout(resolve, randomDelay));
+
 	return {
 		...submittedData,
-		name: (submittedData.name as string)?.toUpperCase(),
+		message: (submittedData.message as string)?.toUpperCase(),
 	};
 };
 
@@ -22,11 +25,11 @@ const processFormData = (submittedData: Record<string, unknown>) => {
 if (request.method === 'POST') {
 	if (request.headers.get('Content-Type') === 'application/json') {
 		const submittedData = await request.json();
-		data = processFormData(submittedData);
+		data = await processFormData(submittedData);
 		return new Response(JSON.stringify(data), { status: 200 });
 	} else if (request.headers.get('Content-Type') === 'application/x-www-form-urlencoded') {
 		const submittedData = Object.fromEntries(await request.formData());
-		data = processFormData(submittedData);
+		data = await processFormData(submittedData);
 		formStore.setKey(formId, { response: data, pending: null, error: null });
 	}
 }
@@ -45,7 +48,7 @@ if (request.method === 'POST') {
 		<p>This form converts the submitted data to uppercase.</p>
 
 		<Form formId={formId} client:load>
-			<input type='text' name='name' />
+			<input type='text' name='message' autofocus />
 			<button type='submit'>Submit</button>
 		</Form>
 
