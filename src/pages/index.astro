@@ -1,15 +1,22 @@
 ---
-// @ts-ignore
-import XElement from 'astro-xelement';
-const { Form } = XElement;
+import Form from '~/components/Form';
+import formStore from '~/stores/form.store';
+import DataOutput from '~/components/DataOutput';
+
 const { request } = Astro;
 
 let data: Record<string, unknown>;
 
+// This needs to be unique per form
+const formId = 'uppercase-form';
+
 // Example form action: converts name to uppercase
 const processFormData = (submittedData: Record<string, unknown>) => {
-	return { ...submittedData, name: (submittedData.name as string)?.toUpperCase() };
-}
+	return {
+		...submittedData,
+		name: (submittedData.name as string)?.toUpperCase(),
+	};
+};
 
 // This is the bit that handles form POST vs fetch POST
 if (request.method === 'POST') {
@@ -20,81 +27,57 @@ if (request.method === 'POST') {
 	} else if (request.headers.get('Content-Type') === 'application/x-www-form-urlencoded') {
 		const submittedData = Object.fromEntries(await request.formData());
 		data = processFormData(submittedData);
-	}
-}
-
-// this will run on the client when form is submitted
-const handleFormSubmit = async (e: SubmitEvent) => {
-	e.preventDefault();
-	const formData = Object.fromEntries(new FormData(e.currentTarget as HTMLFormElement));
-
-	const returnedResponse = await fetch('/', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(formData)
-	});
-
-	if (returnedResponse.ok) {
-		const processedData = await returnedResponse.json();
-
-		// do something with the data
-		document.querySelector('output > pre').textContent = JSON.stringify(processedData, null, 2);
-	} else {
-		console.error(returnedResponse.statusText);
+		formStore.setKey(formId, { response: data, pending: null, error: null });
 	}
 }
 ---
 
 <html lang='en'>
+	<head>
+		<meta charset='utf-8' />
+		<meta name='viewport' content='width=device-width' />
+		<title>Astro</title>
+	</head>
 
-<head>
-	<meta charset='utf-8' />
-	<meta name='viewport' content='width=device-width' />
-	<title>Astro</title>
-</head>
+	<body>
+		<h1>Astro</h1>
 
-<body>
-	<h1>Astro</h1>
+		<p>This form converts the submitted data to uppercase.</p>
 
-	<p>This form converts the submitted data to uppercase.</p>
+		<Form formId={formId} client:load>
+			<input type='text' name='name' />
+			<button type='submit'>Submit</button>
+		</Form>
 
-	<Form method='post' @submit={handleFormSubmit}>
-		<input type='text' name='name' />
-		<input type='submit' value='Submit' />
-	</Form>
+		<DataOutput formId={formId} client:load />
 
-	<output>
-		<pre>{data && JSON.stringify(data, null, 2)}</pre>
-	</output>
-</body>
+		<style>
+			html {
+				color-scheme: dark light;
+				font-family: system-ui, sans-serif;
+			}
 
-<style>
-	html {
-		color-scheme: dark light;
-		font-family: system-ui, sans-serif;
-	}
+			body {
+				margin: 0;
+				display: grid;
+				justify-content: center;
+				justify-items: start;
+				gap: 0.5rem;
+			}
 
-	body {
-		margin: 0;
-		display: grid;
-		justify-content: center;
-		justify-items: start;
-		gap: 0.5rem;
-	}
+			h1 {
+				margin-bottom: 0;
+			}
 
-	h1 {
-		margin-bottom: 0;
-	}
+			p {
+				font-size: 0.8rem;
+				font-style: italic;
+			}
 
-	p {
-		font-size: 0.8rem;
-		font-style: italic;
-	}
-
-	form {
-		display: flex;
-		gap: 0.5rem;
-	}
-</style>
-
+			form {
+				display: flex;
+				gap: 0.5rem;
+			}
+		</style>
+	</body>
 </html>
