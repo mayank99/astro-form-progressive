@@ -1,17 +1,26 @@
 {
-	"name": "astro-form-progressive",
-	"version": "0.0.1",
-	"private": true,
-	"scripts": {
-		"dev": "astro dev",
-		"start": "astro dev",
-		"build": "astro build",
-		"preview": "astro preview",
-		"astro": "astro"
-	},
-	"devDependencies": {
-		"@astrojs/vercel": "~0.3.0",
-		"astro": "1.0.0-rc.1",
-		"astro-xelement": "^3.2.0"
-	}
+  "name": "astro-form-progressive",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "devDependencies": {
+    "@astrojs/solid-js": "^1.0.0",
+    "@astrojs/vercel": "^1.0.0",
+    "astro": "^1.0.8",
+    "nanostores": "^0.6.0",
+    "prettier-plugin-astro": "^0.5.3",
+    "solid-js": "^1.4.8"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "jsxSingleQuote": true,
+    "useTabs": true
+  }
 }
